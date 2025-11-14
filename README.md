@@ -137,6 +137,28 @@ docx/
 - Generated files are for testing purposes
 - Monitor your Burp Collaborator for successful payload execution
 
+## Test Application
+
+A web application is included in the `test-app/` directory to test uploaded files and view their rendered content.
+
+### Running the Test Server
+
+```bash
+cd test-app
+npm install
+npm start
+```
+
+The server will be available at `http://localhost:3000`
+
+Features:
+- Upload files via drag & drop or file browser
+- View uploaded files (images, PDFs, HTML, XML, etc.)
+- Download or delete uploaded files
+- Test all generated payloads for vulnerabilities
+
+See `test-app/README.md` for more details.
+
 ## Contributing
 
 Feel free to add new file formats or vulnerability types by creating new generator modules in the `generators/` directory.
