@@ -1,6 +1,6 @@
 # UploadStuffAllTheThings
 
-Outil de génération de payloads SSRF, XXE et RCE pour tous les formats de fichiers.
+Comprehensive file upload payload generator for security testing. Generates all possible payloads for SSRF, XXE, RCE, XSS, Path Traversal, and other vulnerabilities across all common file formats.
 
 ## Installation
 
@@ -8,57 +8,135 @@ Outil de génération de payloads SSRF, XXE et RCE pour tous les formats de fich
 pip3 install -r requirements.txt
 ```
 
-## Utilisation
+## Usage
 
 ```bash
 ./uploadallthethings <burp-collab>
 ```
 
-Exemple:
+Example:
 ```bash
 ./uploadallthethings abc123.burpcollaborator.net
 ```
 
-## Formats supportés
+## Supported File Formats
 
-### PDF
-- **SSRF**: URLs directes, URI actions, GoToR, Launch actions, annotations
-- **XXE**: Via XMP metadata (toutes variantes)
-- **RCE**: JavaScript dans OpenAction, AA (Additional Actions), app.alert, submitForm
+### Office Documents
+- **PDF**: SSRF, XXE, RCE, XSS, Path Traversal
+- **DOCX**: SSRF, XXE, RCE, XSS, Path Traversal
+- **XLSX**: SSRF, XXE, RCE, XSS, Path Traversal
+- **PPTX**: SSRF, XXE
+- **ODT/ODS/ODP**: XXE
 
-### XLSX
-- **SSRF**: URLs dans les cellules
-- **XXE**: workbook.xml, sharedStrings.xml, styles.xml, [Content_Types].xml, worksheets/sheet1.xml, _rels/.rels
-- **RCE**: HYPERLINK, WEBSERVICE, FILTERXML, IMPORTXML, IMPORTDATA, IMPORTHTML, IMPORTFEED
+### Web Formats
+- **HTML**: XSS, SSRF, RCE
+- **SVG**: SSRF, XXE, RCE, XSS
+- **XML**: XXE, XSS, Path Traversal
 
-### DOCX
-- **SSRF**: URLs dans le contenu, hyperliens
-- **XXE**: document.xml, settings.xml, core.xml, [Content_Types].xml, footnotes.xml, header1.xml
-- **RCE**: Hyperliens malveillants
+### Images
+- **GIF**: SSRF, XXE (via XMP), XSS, Path Traversal
+- **JPG**: SSRF, XSS, Path Traversal
+- **PNG**: SSRF, XSS, Path Traversal
 
-### Autres formats
-- **GIF**: SSRF, XXE (via XMP)
-- **JPG**: SSRF (dans métadonnées)
-- **SVG**: SSRF, XXE, RCE (onload, script tags)
-- **PPTX**: XXE
-- **ODT**: XXE
-- **XML**: XXE (toutes variantes)
-- **RTF**: SSRF (hyperliens)
-- **ZIP**: XXE (fichiers XML dans archive)
+### Archives
+- **ZIP**: XXE, Path Traversal, RCE (PHP)
+- **JAR**: XXE, Path Traversal, RCE (PHP)
 - **EPUB**: XXE
 
-## Structure des fichiers générés
+### Text Files
+- **TXT**: XSS, SSRF, Path Traversal, RCE
+- **CSV**: XSS, SSRF, Path Traversal, RCE
+- **RTF**: SSRF, XSS, Path Traversal, RCE
 
-L'outil crée les dossiers suivants:
-- `pdf/` - Tous les payloads PDF
-- `xlsx/` - Tous les payloads XLSX
-- `docx/` - Tous les payloads DOCX
-- `others/` - Tous les autres formats (GIF, SVG, etc.)
+## Directory Structure
 
-Chaque fichier est nommé selon le format: `<format>_<type>_<numéro>.<extension>`
+The tool creates the following structure:
+```
+<extension>/
+  ├── ssrf/
+  │   └── payload_1.<ext>
+  ├── xxe/
+  │   └── payload_1.<ext>
+  ├── rce/
+  │   └── payload_1.<ext>
+  ├── xss/
+  │   └── payload_1.<ext>
+  └── path_traversal/
+      └── payload_1.<ext>
+```
 
-Exemples:
-- `pdf_ssrf_1.pdf`
-- `xlsx_xxe_sharedstrings.xlsx`
-- `docx_rce_1.docx`
-- `svg_rce_1.svg`
+Example:
+```
+docx/
+  ├── ssrf/
+  │   ├── payload_1.docx
+  │   └── payload_2.docx
+  ├── xxe/
+  │   ├── payload_1.docx
+  │   ├── xxe_document.docx
+  │   └── xxe_settings.docx
+  ├── rce/
+  │   └── payload_1.docx
+  ├── xss/
+  │   └── payload_1.docx
+  └── path_traversal/
+      └── payload_1.docx
+```
+
+## Vulnerabilities Covered
+
+### SSRF (Server-Side Request Forgery)
+- Direct URLs
+- Protocol handlers (file://, gopher://, dict://, ldap://)
+- IPv6 addresses
+- Localhost bypasses
+- URI actions in PDF
+- External links in Office documents
+
+### XXE (XML External Entity)
+- Basic entity injection
+- Parameter entities
+- Out-of-band XXE
+- XXE in all XML locations:
+  - Office Open XML: workbook.xml, document.xml, sharedStrings.xml, styles.xml, settings.xml, core.xml, [Content_Types].xml, _rels/.rels
+  - SVG, XML, ODT, ODS, ODP
+  - XMP metadata in PDF/GIF
+
+### RCE (Remote Code Execution)
+- JavaScript in PDF (OpenAction, AA actions)
+- Excel formulas (HYPERLINK, WEBSERVICE, FILTERXML, IMPORTXML, IMPORTDATA, IMPORTHTML, IMPORTFEED)
+- Hyperlinks in DOCX
+- SVG script execution
+- HTML script execution
+- Command injection in text files
+
+### XSS (Cross-Site Scripting)
+- Script tags
+- Event handlers (onerror, onload, onfocus)
+- SVG-based XSS
+- HTML-based XSS
+- JavaScript protocol handlers
+
+### Path Traversal
+- Directory traversal sequences (../, ..\\, ....//)
+- URL encoding
+- Windows and Linux paths
+- In filenames and content
+
+## Features
+
+- **Comprehensive Coverage**: All major file formats and vulnerabilities
+- **Organized Structure**: Easy-to-navigate directory hierarchy
+- **Burp Integration**: All payloads target your Burp Collaborator instance
+- **Extensible**: Easy to add new formats and vulnerabilities
+
+## Notes
+
+- This tool is for authorized security testing only
+- Ensure you have permission before testing
+- Generated files are for testing purposes
+- Monitor your Burp Collaborator for successful payload execution
+
+## Contributing
+
+Feel free to add new file formats or vulnerability types by creating new generator modules in the `generators/` directory.

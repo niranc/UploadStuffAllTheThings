@@ -1,59 +1,74 @@
 #!/usr/bin/env python3
 import sys
-import os
 import argparse
 from pathlib import Path
 
 from generators.pdf_generator import generate_pdf_payloads
 from generators.xlsx_generator import generate_xlsx_payloads
 from generators.docx_generator import generate_docx_payloads
-from generators.others_generator import generate_others_payloads
+from generators.pptx_generator import generate_pptx_payloads
+from generators.svg_generator import generate_svg_payloads
+from generators.xml_generator import generate_xml_payloads
+from generators.html_generator import generate_html_payloads
+from generators.image_generator import generate_image_payloads
+from generators.archive_generator import generate_archive_payloads
+from generators.text_generator import generate_text_payloads
+from generators.office_generator import generate_office_payloads
 
 def main():
-    parser = argparse.ArgumentParser(description='Générateur de payloads SSRF, XXE, RCE pour tous les formats')
-    parser.add_argument('burp_collab', help='URL du Burp Collaborator (ex: abc123.burpcollaborator.net)')
+    parser = argparse.ArgumentParser(description='Generate all possible file upload payloads for security testing')
+    parser.add_argument('burp_collab', help='Burp Collaborator URL (ex: abc123.burpcollaborator.net)')
     args = parser.parse_args()
 
     burp_collab = args.burp_collab
-    print(f"[+] Génération de payloads vers: {burp_collab}")
-    print("[+] Création des dossiers...\n")
+    print(f"[+] Generating payloads targeting: {burp_collab}")
+    print("[+] Creating directory structure...\n")
 
     base_dir = Path.cwd()
-    output_dirs = {
-        'pdf': base_dir / 'pdf',
-        'xlsx': base_dir / 'xlsx',
-        'docx': base_dir / 'docx',
-        'others': base_dir / 'others'
+    
+    generators = {
+        'pdf': (generate_pdf_payloads, None),
+        'xlsx': (generate_xlsx_payloads, None),
+        'docx': (generate_docx_payloads, None),
+        'pptx': (generate_pptx_payloads, None),
+        'svg': (generate_svg_payloads, None),
+        'xml': (generate_xml_payloads, None),
+        'html': (generate_html_payloads, None),
+        'gif': (generate_image_payloads, 'gif'),
+        'jpg': (generate_image_payloads, 'jpg'),
+        'png': (generate_image_payloads, 'png'),
+        'zip': (generate_archive_payloads, 'zip'),
+        'jar': (generate_archive_payloads, 'jar'),
+        'txt': (generate_text_payloads, 'txt'),
+        'csv': (generate_text_payloads, 'csv'),
+        'rtf': (generate_text_payloads, 'rtf'),
+        'odt': (generate_office_payloads, None),
+        'ods': (generate_office_payloads, None),
+        'odp': (generate_office_payloads, None),
+        'epub': (generate_archive_payloads, 'epub'),
     }
 
-    for dir_path in output_dirs.values():
-        dir_path.mkdir(exist_ok=True)
-
     try:
-        print("[+] Génération des payloads PDF...")
-        generate_pdf_payloads(output_dirs['pdf'], burp_collab)
-        print("[✓] PDF terminé\n")
+        for ext, (generator_func, ext_param) in generators.items():
+            print(f"[+] Generating {ext.upper()} payloads...")
+            ext_dir = base_dir / ext
+            ext_dir.mkdir(exist_ok=True)
+            
+            if ext_param:
+                generator_func(ext_dir, ext_param, burp_collab)
+            else:
+                generator_func(ext_dir, burp_collab)
+            
+            print(f"[✓] {ext.upper()} completed\n")
 
-        print("[+] Génération des payloads XLSX...")
-        generate_xlsx_payloads(output_dirs['xlsx'], burp_collab)
-        print("[✓] XLSX terminé\n")
-
-        print("[+] Génération des payloads DOCX...")
-        generate_docx_payloads(output_dirs['docx'], burp_collab)
-        print("[✓] DOCX terminé\n")
-
-        print("[+] Génération des payloads autres formats...")
-        generate_others_payloads(output_dirs['others'], burp_collab)
-        print("[✓] Autres formats terminé\n")
-
-        print("[+] Tous les payloads ont été générés avec succès!")
-        print(f"[+] Fichiers créés dans: {base_dir}")
+        print("[+] All payloads generated successfully!")
+        print(f"[+] Files created in: {base_dir}")
+        print(f"[+] Structure: <extension>/<vulnerability>/<payload_file>")
     except Exception as error:
-        print(f"[!] Erreur lors de la génération: {error}")
+        print(f"[!] Error during generation: {error}")
         import traceback
         traceback.print_exc()
         sys.exit(1)
 
 if __name__ == '__main__':
     main()
-
